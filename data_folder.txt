@@ -1,0 +1,52 @@
+from datetime import datetime
+from pathlib import Path
+
+        dir_path = 'Data\confirmed_cxs_without_loans_(' + dt + ').xlsx'
+        # dir_path = os.getcwd() + '/yp_automation/.../Data/confirmed_cxs_without_loans_(' + dt + ').xlsx'
+
+        writer = pd.ExcelWriter(dir_path, engine='xlsxwriter')
+
+
+
+read_excel_file = Path(dir_path)
+        if read_excel_file.exists():
+            # Sending Mail
+            try:
+                commaspace = ', '
+                from_address = "data@krazybee.com"  # Enter you gmail user name
+                # to_address = ["abhinav@krazybee.com", "ishan@krazybee.com", "adhitya@krazybee.com", "prince@krazybee.com", "syed.saif@krazybee.com"]
+                to_address = ["prince@krazybee.com"]
+                msg = MIMEMultipart()
+                msg['From'] = from_address
+                msg['To'] = commaspace.join(to_address)
+
+                msg['Subject'] = "YP Confirmed Customers Without Loans Report:" + dt
+                body = "Hi,PFA the YP Confirmed Customers Without Loans Report for " + dt
+                msg.attach(MIMEText(body, 'plain'))
+                attached_file_name = dir_path
+
+                file_name = "yp_par_vs_collection_report_" + dt + ".xlsx"
+                attachment = open(attached_file_name, 'rb')
+                part = MIMEBase('application', 'octet-stream')
+                part.set_payload(attachment.read())
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', "attachment; filename= %s" % file_name)
+                msg.attach(part)
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(from_address, "Data@123$")  # Enter your gmail password
+                text = msg.as_string()
+                server.sendmail(from_address, to_address, text)
+                print("Email Sent on ", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                server.quit()
+                print("********************************************************************************")
+
+            except Exception as fetch_data_exception:
+                exc_obj = sys.exc_info()
+                exc_type = exc_obj[0]
+                exc_tb = exc_obj[2]
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, exc_tb.tb_lineno)
+                exception_string = str(exc_type) + " & " + str(fname) + " & " + str(exc_tb.tb_lineno)
+                send_email_on_exception(fetch_data_exception, exception_string)
+                print("********************************************************************************")
